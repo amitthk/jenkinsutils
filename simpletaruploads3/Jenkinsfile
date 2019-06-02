@@ -16,7 +16,7 @@ parameters {
     string(name: 'ARTIFACT_ID', defaultValue: 'demo', description: 'ARTIFACT_ID')
     string(name: 'ARTIFACT_VERSION', defaultValue: '1.0.0', description: 'ARTIFACT_VERSION')
     string(name: 'ARTIFACT_TYPE', defaultValue: 'tgz', description: 'tgz')
-    booleanParam(name: 'CUT_RELEASE', defaultValue: 'true', description: 'Cut a release?')
+    booleanParam(name: 'CUT_RELEASE', defaultValue: True, description: 'Cut a release?')
 }
 
 stages{
