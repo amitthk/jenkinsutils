@@ -89,7 +89,7 @@ stages{
                     
                     sh '''#!/bin/bash -xe
 
-                    aws s3 cp ${UPLOADED_FILE} ${aws_s3_bucket_name}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
+                    aws s3 cp ${APP_BASE_DIR}/${UPLOADED_FILE} ${aws_s3_bucket_name}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
                     '''
                 }
             }
