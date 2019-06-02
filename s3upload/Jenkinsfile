@@ -53,8 +53,8 @@ stages{
         env.APP_BASE_DIR = pwd()
         env.GIT_HASH = sh (script: "git rev-parse --short HEAD", returnStdout: true)
         env.TIMESTAMP = sh (script: "date +'%Y%m%d%H%M%S%N' | sed 's/[0-9][0-9][0-9][0-9][0-9][0-9]\$//g'", returnStdout: true)
-        load "$APP_BASE_DIR/env_vars/all.groovy"
-        load "$APP_BASE_DIR/env_vars/${DEPLOY_ENV}.groovy"
+        load "${APP_BASE_DIR}/s3upload/env_vars/all.groovy"
+        load "${APP_BASE_DIR}/s3upload/env_vars/${DEPLOY_ENV}.groovy"
         env.APP_ID = getEnvVar("${DEPLOY_ENV}",'APP_ID')
 
 
@@ -89,7 +89,7 @@ stages{
                     
                     sh '''#!/bin/bash -xe
 
-                    aws s3 cp ${UPLOADED_FILE} ${AWS_S3_BUCKET_NAME}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
+                    aws s3 cp ${UPLOADED_FILE} ${aws_s3_bucket_name}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
                     '''
                 }
             }
