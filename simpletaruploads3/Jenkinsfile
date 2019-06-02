@@ -44,7 +44,7 @@ stages{
 
         util = load "${APP_BASE_DIR}/util.groovy"
 
-        env.ARTIFACT_VERSION = util.getReleaseVersion("${CUT_RELEASE}", "${ARTIFACT_VERSION}", "${GIT_COMMIT_SHORT_HASH}")
+        env.ARTIFACT_VERSION = util.getReleaseVersion("${params.CUT_RELEASE}", "${ARTIFACT_VERSION}", "${GIT_COMMIT_SHORT_HASH}")
 
         env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
         env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()
