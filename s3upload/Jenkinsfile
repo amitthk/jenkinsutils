@@ -66,8 +66,8 @@ stages{
         env.ARTIFACT_VERSION = "$params.ARTIFACT_VERSION"
         env.ARTIFACT_TYPE = "$params.ARTIFACT_TYPE"
 
-        env.GROUP_URL = sh (script: "echo ${GROUP_ID} | tr '.' '/'", returnStdout: true)
-        env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}/${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true)
+        env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
+        env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}/${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()
         //env.UPLOADED_FILE_CONTENTS = library.inputGetFile('UPLOADED_FILE')
         }
 
