@@ -1,0 +1,47 @@
+---
+- hosts: datacenter_host
+  gather_facts: true
+  become: false
+  vars:
+    base_dir: "~/"
+    IMAGE_RELEASE_TAG: "1.0.0"
+  tasks:
+    # - name: build the images
+    #   docker_image:
+    #     name: "{{item}}"
+    #     tag: latest
+    #     path: "{{item}}"
+    #     state: present
+    #   with_items:
+    #     - pyfln-auth
+    #     - pyfln-ui
+
+    - name: run mongodb in container
+      docker_container:
+        name: pyfln-mongodb
+        image: "mongo:4.0.9"
+        state: started
+        ports:
+          - "27017:27017"
+
+    - name: run pyfln-auth in a docker container
+      docker_container:
+        name: pyfln-auth
+        image: "pyfln-auth:{{IMAGE_RELEASE_TAG}}"
+        volumes:
+          - "/var/www/pyfln-auth/instance/app.cfg:/opt/app-root/var/app-instance/app.cfg"
+        state: started
+        restart: yes
+        ports:
+          - "8082:8000"
+
+    - name: run pyfln-ui in a docker container
+      docker_container:
+        name: pyfln-ui
+        image: "pyfln-ui:{{IMAGE_RELEASE_TAG}}"
+        state: started
+        restart: yes
+        env:
+          API_ENDPOINT: http://pyfln-auth:8000/api
+        ports:
+          - "8081:8080"

@@ -1,0 +1,93 @@
+---
+- name: Prerequisites
+  become: true
+  gather_facts: False
+  hosts: all
+  become: yes
+  become_user: "{{ansible_become_user}}"
+  become_method: "{{ansible_become_method}}"
+  roles:
+    - common
+  tags:
+    - common
+
+- name: db
+  hosts: db
+  become: yes
+  become_user: "{{ansible_become_user}}"
+  become_method: "{{ansible_become_method}}"
+  roles:
+    - db
+  tags:
+    - db
+
+- name: ldap
+  hosts: ldap
+  become: yes
+  become_user: "{{ansible_become_user}}"
+  become_method: "{{ansible_become_method}}"
+  roles:
+    - ldap
+  tags:
+    - ldap
+
+- name: phpldapadmin
+  hosts: ldap
+  become: yes
+  become_user: "{{ansible_become_user}}"
+  become_method: "{{ansible_become_method}}"
+  roles:
+    - phpldapadmin
+  tags:
+    - phpldapadmin
+
+- name: kerberos
+  hosts: kerberos
+  become: yes
+  become_user: "{{ansible_become_user}}"
+  become_method: "{{ansible_become_method}}"
+  roles:
+    - kerberos
+  tags:
+    - kerberos
+
+- name: SCM
+  hosts: scm
+  become: yes
+  become_user: "{{ansible_become_user}}"
+  become_method: "{{ansible_become_method}}"
+  roles:
+    - cdh-scm
+  tags:
+    - cdh-scm
+
+- name: master
+  hosts: masters
+  become: yes
+  become_user: "{{ansible_become_user}}"
+  become_method: "{{ansible_become_method}}"
+  roles:
+    - cdh-master
+  tags:
+    - cdh-master
+
+- name: elasticsearch
+  hosts: masters
+  roles:
+    - elasticsearch
+  tags:
+    - elasticsearch
+
+- name: worker
+  hosts: workers
+  roles:
+    - cdh-worker
+  tags:
+    - cdh-worker
+
+- name: gateway
+  hosts: scm
+  roles:
+    - cdh-gateway
+  tags:
+    - cdh-gateway

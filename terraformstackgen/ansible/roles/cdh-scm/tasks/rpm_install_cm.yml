@@ -1,0 +1,42 @@
+---
+- name: delete everyting cloudera
+  shell: "rpm -qa | grep -i cloudera-manager | while read line ; do rpm -e $line ; done"
+  args:
+    chdir: "/home/{{ansible_ssh_user}}/tmp/{{cm_version}}/x86_64/cm/{{cdh_version}}/RPMS/x86_64/"
+  when: scm_service_status.stat.exists
+
+- name: "Download the rpms"
+  command: "wget -r -nH --cut-dirs=2 --no-parent --reject='index.html*' {{cloudera_repo_base}}/cm{{cm_version}}/redhat/{{cm_version}}/x86_64/cm/{{cdh_version}}/RPMS/x86_64/"
+  args:
+    chdir: "/home/{{ansible_ssh_user}}/tmp"
+
+#https://www.cloudera.com/documentation/enterprise/5-16-x/topics/install_cm_server.html#install_cm_server
+- name: local install the scm packages
+  shell: "yum -y --nogpgcheck localinstall ./cloudera-manager-server-{{cdh_version}}*.rpm"
+  args:
+    chdir: "/home/{{ansible_ssh_user}}/tmp/{{cm_version}}/x86_64/cm/{{cdh_version}}/RPMS/x86_64/"
+  when: not scm_service_status.stat.exists
+
+- name: local install the scm packages
+  shell: "yum -y --nogpgcheck localinstall ./cloudera-manager-server-db-2-{{cdh_version}}*.rpm"
+  args:
+    chdir: "/home/{{ansible_ssh_user}}/tmp/{{cm_version}}/x86_64/cm/{{cdh_version}}/RPMS/x86_64/"
+  when: not scm_service_status.stat.exists
+
+- name: enable the cloudera-scm-server-db service
+  service:
+    name: cloudera-scm-server-db
+    enabled: yes
+- name: start the cloudera-scm-server-db service
+  service:
+    name: cloudera-scm-server-db
+    state: started
+
+- name: enable the cloudera-scm-server service
+  service:
+    name: cloudera-scm-server
+    enabled: yes
+- name: start the cloudera-scm-server service
+  service:
+    name: cloudera-scm-server
+    state: started

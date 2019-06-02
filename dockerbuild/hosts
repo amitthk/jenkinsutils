@@ -1,0 +1,10 @@
+localhost ansible_connection=local ansible_ssh_user=centos
+
+[dashboard_ui]
+localhost
+
+[user_ui]
+localhost
+
+[datacenter_host]
+localhost

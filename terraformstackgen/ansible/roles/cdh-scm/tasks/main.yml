@@ -1,0 +1,72 @@
+---
+# tasks file for cdh-scm
+- name: "ensure /home/{{ansible_ssh_user}}/tmp exists"
+  file:
+    path: /home/{{ansible_ssh_user}}/tmp
+    state: directory
+    mode: 777
+
+- name: "delete the old cloudera manager file if it exist"
+  file:
+    path: /home/{{ansible_ssh_user}}/tmp/{{cloudera_manager_package}}
+    state: absent
+
+# - name: "S3 GET {{cloudera_manager_package}} from bucket"
+#   s3:
+#     aws_access_key: "{{ s3_aws_access_key }}"
+#     aws_secret_key: "{{ s3_aws_secret_key }}"
+#     bucket: jvcdp-repo
+#     object: /vendor_binaries/{{cloudera_manager_package}}
+#     dest: "/home/{{ansible_ssh_user}}/tmp/{{cloudera_manager_package}}"
+#     mode: get
+# #        state: latest
+
+- name: download the cloudera manager package
+  get_url:
+    url: "{{repo_base_url}}/{{cloudera_manager_package}}"
+    dest: "/home/{{ansible_ssh_user}}/tmp/{{cloudera_manager_package}}"
+    mode: 777
+
+- name: "set permissions for cloudera manager file"
+  file:
+    path: /home/{{ansible_ssh_user}}/tmp
+    mode: 777
+    recurse: yes
+  become: true
+
+- name: Check if Service Exists
+  stat:
+    path: "/etc/init.d/cloudera-scm-server"
+  register: scm_service_status
+
+# - name: Unarchive a {{cloudera_manager_package}} file that is already on the remote machine
+#   unarchive:
+#     src: /home/{{ansible_ssh_user}}/tmp/{{cloudera_manager_package}}
+#     dest: /opt
+#     copy: no
+# #        remote_src: yes
+#     mode: 777
+#   become: true
+
+# - name: "install the cloudera manager package using the bin"
+#   shell: "./{{cloudera_manager_package}} --i-agree-to-all-licenses --noprompt --noreadme --nooptions"
+#   args:
+#     chdir: "/home/{{ansible_ssh_user}}/tmp"
+#   when: not scm_service_status.stat.exists
+
+# - name: include rpm tasks
+#   include_tasks: rpm_install_cm.yml
+#   tags:
+#     - rpm_install_cm
+
+# - name: scm prepare database
+#   shell: /usr/share/cmf/schema/scm_prepare_database.sh mysql -h {{groups['db'][0]}} -utemp -ppassword123 --scm-host {{groups['scm'][0]}} scm scm scm JAVA_HOME=/usr/java/jdk1.7.0_67-cloudera/
+
+- name: Open up FirewallD for scm 
+  command: "firewall-cmd --zone=dmz --add-port={{item}}/tcp --permanent"
+  with_items:
+    - "{{cloudera_ports}}"
+    - "{{cdh_services_ports}}"
+    - "{{cdh_third_party_ports}}"
+- name: reload firewalld
+  command: firewall-cmd --reload

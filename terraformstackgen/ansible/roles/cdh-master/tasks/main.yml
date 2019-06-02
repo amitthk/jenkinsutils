@@ -1,0 +1,4 @@
+---
+# tasks file for cdh-master
+- name: ls lart from master home
+  shell: ls -lart

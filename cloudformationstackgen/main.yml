@@ -1,0 +1,41 @@
+---
+- name: Prerequisites
+  gather_facts: yes
+  hosts: all
+  become: yes
+  roles:
+    - common
+  tags:
+    - common
+
+- name: db
+  hosts: all
+  become: yes
+  roles:
+    - db
+  tags:
+    - db
+
+- name: ldap
+  hosts: all
+  become: yes
+  roles:
+    - ldap
+  tags:
+    - ldap
+
+- name: phpldapadmin
+  hosts: all
+  become: yes
+  roles:
+    - phpldapadmin
+  tags:
+    - phpldapadmin
+
+- name: kerberos
+  hosts: all
+  become: yes
+  roles:
+    - kerberos
+  tags:
+    - kerberos

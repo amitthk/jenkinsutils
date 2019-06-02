@@ -1,0 +1,30 @@
+---
+- hosts: datacenter_host
+  gather_facts: true
+  become: false
+  vars:
+    base_dir: "~/"
+  tasks:
+    - name: "Delete pyfln_network network, disconnecting all containers"
+      docker_network:
+        name: pyfln_network
+        state: absent
+        force: yes
+
+    - name: "Create pyfln_network network with options"
+      docker_network:
+        name: pyfln_network
+        driver_options:
+          com.docker.network.bridge.name: net2
+        ipam_options:
+          subnet: '172.20.0.0/16'
+          gateway: 172.20.0.1
+          iprange: '172.20.0.0/10'
+
+    - name: "Attach the following containers"
+      docker_network:
+        name: pyfln_network
+        connected:
+          - pyfln-mongodb
+          - pyfln-auth
+          - pyfln-ui
