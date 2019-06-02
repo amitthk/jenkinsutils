@@ -1,0 +1,110 @@
+def getEnvVar(String deployEnv, String paramName){
+    return sh (script: "grep '${paramName}' env_vars/${deployEnv}.properties|cut -d'=' -f2", returnStdout: true).trim();
+}
+def inputGetFile(String savedfile = null) {
+ def filedata = null
+ def filename = null
+ // Get file using input step, will put it in build directory
+ // the filename will not be included in the upload data, so optionally allow it to be specified
+ // taken from here: https://issues.jenkins-ci.org/browse/JENKINS-27413
+ if (savedfile == null) {
+ def inputFile = input message: 'Upload file', parameters: [file(name: 'library_data_upload'), string(name: 'filename', defaultValue: 'uploaded-file-data')]
+ filedata = inputFile['library_data_upload']
+ filename = inputFile['filename']
+ } else {
+ def inputFile = input message: 'Upload file', parameters: [file(name: 'library_data_upload')]
+ filedata = inputFile
+ filename = savedfile
+ }
+ // Read contents and write to workspace
+ writeFile(file: filename, encoding: 'Base64', text: filedata.read().getBytes().encodeBase64().toString())
+ // Remove the file from the master to avoid stuff like secret leakage
+ filedata.delete()
+ return filename
+}
+
+pipeline{
+
+agent any
+
+options {
+      timeout(time: 1, unit: 'HOURS') 
+}
+
+parameters {
+    file(name:'UPLOADED_FILE', description:'FILE to be uploaded')
+    password(name:'AWS_KEY', defaultValue: '', description:'Enter AWS_KEY')
+    choice(name: 'DEPLOY_ENV', choices: ['dev','sit','uat','prod'], description: 'Select the deploy environment')
+    choice(name: 'ACTION_TYPE', choices: ['upload','download', 'delete'], description: 'Upload, download or delete')
+    string(name: 'AWS_DEFAULT_REGION', defaultValue: 'ap-southeast-1', description: 'AWS default region')
+    string(name: 'GROUP_ID', defaultValue: 'org.mywire.amitthk', description: 'Groupid of the artifact')
+    string(name: 'ARTIFACT_ID', defaultValue: 'demo', description: 'ARTIFACT_ID')
+    string(name: 'ARTIFACT_VERSION', defaultValue: '1.0.0', description: 'ARTIFACT_VERSION')
+    string(name: 'ARTIFACT_TYPE', defaultValue: 'tgz', description: 'tgz')
+}
+
+stages{
+    stage('Init'){
+        steps{
+            checkout scm 
+        script{
+
+        env.DEPLOY_ENV = "$params.DEPLOY_ENV"
+        env.APP_BASE_DIR = pwd()
+        env.GIT_HASH = sh (script: "git rev-parse --short HEAD", returnStdout: true)
+        env.TIMESTAMP = sh (script: "date +'%Y%m%d%H%M%S%N' | sed 's/[0-9][0-9][0-9][0-9][0-9][0-9]\$//g'", returnStdout: true)
+        load "$APP_BASE_DIR/env_vars/all.groovy"
+        load "$APP_BASE_DIR/env_vars/${DEPLOY_ENV}.groovy"
+        env.APP_ID = getEnvVar("${DEPLOY_ENV}",'APP_ID')
+
+
+        env.ACTION_TYPE = "$params.ACTION_TYPE"
+        env.AWS_DEFAULT_REGION = "$params.AWS_DEFAULT_REGION"
+
+        env.GROUP_ID = "$params.GROUP_ID"
+        env.ARTIFACT_ID = "$params.ARTIFACT_ID"
+        env.ARTIFACT_VERSION = "$params.ARTIFACT_VERSION"
+        env.ARTIFACT_TYPE = "$params.ARTIFACT_TYPE"
+
+        env.GROUP_URL = sh (script: "echo ${GROUP_ID} | tr '.' '/'", returnStdout: true)
+        env.ARTIFACT_FULL_NAME = sh (script: "echo ${ARTIFACT_ID}/${ARTIFACT_VERSION}.${ARTIFACT_TYPE} | tr '.' '/'", returnStdout: true)
+        //env.UPLOADED_FILE_CONTENTS = library.inputGetFile('UPLOADED_FILE')
+        }
+
+        }
+    }
+
+    stage('Upload'){
+        when {
+        expression {
+            return env.ACTION_TYPE == 'upload';
+            }
+        }
+        steps{
+            script{
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', 
+                accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
+                credentialsId: "${repo_bucket_credentials_id}", 
+                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]){
+                    
+                    sh '''#!/bin/bash -xe
+
+                    aws s3 cp ${UPLOADED_FILE} ${AWS_S3_BUCKET_NAME}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
+                    '''
+                }
+            }
+        }
+    }
+
+
+}
+
+post {
+    always {
+        sh '''
+        echo "perform some cleanup"
+        rm -f $APP_BASE_DIR/cf-params.json | true
+        '''
+    }
+}
+}
