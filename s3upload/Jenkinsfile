@@ -29,7 +29,7 @@ options {
 }
 
 parameters {
-    file(name:'UPLOADED_FILE', description:'FILE to be uploaded')
+    file(name:"$workspace/UPLOADED_FILE", description:'FILE to be uploaded')
     password(name:'AWS_KEY', defaultValue: '', description:'Enter AWS_KEY')
     choice(name: 'DEPLOY_ENV', choices: ['dev','sit','uat','prod'], description: 'Select the deploy environment')
     choice(name: 'ACTION_TYPE', choices: ['upload','download', 'delete'], description: 'Upload, download or delete')
@@ -45,7 +45,9 @@ stages{
         steps{
             checkout scm 
         script{
-
+        sh '''
+        find  ${WORKSPACE}
+        '''
         env.DEPLOY_ENV = "$params.DEPLOY_ENV"
         env.APP_BASE_DIR = pwd()
         env.GIT_HASH = sh (script: "git rev-parse --short HEAD", returnStdout: true)
@@ -64,11 +66,10 @@ stages{
         env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
         env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}/${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()
         //env.UPLOADED_FILE_CONTENTS = library.inputGetFile('UPLOADED_FILE')
+        //new hudson.FilePath(new File("$workspace/UPLOADED_FILE")).copyFrom(params.UPLOADED_FILE)
         }
 
-        sh '''
-        cat ${UPLOADED_FILE} > ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME}
-        '''
+
 
         }
     }
@@ -87,7 +88,6 @@ stages{
                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]){
                     
                     sh '''#!/bin/bash -xe
-                    find  ${APP_BASE_DIR}
                     aws s3 cp ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME} s3://${aws_s3_bucket_name}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
                     '''
                 }
