@@ -1,6 +1,3 @@
-def getEnvVar(String deployEnv, String paramName){
-    return sh (script: "grep '${paramName}' env_vars/${deployEnv}.properties|cut -d'=' -f2", returnStdout: true).trim();
-}
 def inputGetFile(String savedfile = null) {
  def filedata = null
  def filename = null
@@ -55,8 +52,6 @@ stages{
         env.TIMESTAMP = sh (script: "date +'%Y%m%d%H%M%S%N' | sed 's/[0-9][0-9][0-9][0-9][0-9][0-9]\$//g'", returnStdout: true)
         load "${APP_BASE_DIR}/s3upload/env_vars/all.groovy"
         load "${APP_BASE_DIR}/s3upload/env_vars/${DEPLOY_ENV}.groovy"
-        env.APP_ID = getEnvVar("${DEPLOY_ENV}",'APP_ID')
-
 
         env.ACTION_TYPE = "$params.ACTION_TYPE"
         env.AWS_DEFAULT_REGION = "$params.AWS_DEFAULT_REGION"
@@ -69,10 +64,11 @@ stages{
         env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
         env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}/${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()
         //env.UPLOADED_FILE_CONTENTS = library.inputGetFile('UPLOADED_FILE')
-        writeFile(file: "${ARTIFACT_FULL_NAME}", encoding: 'UTF-8', text: params.UPLOADED_FILE.read().getBytes())
-        // Remove the file from the master to avoid stuff like secret leakage
-        //filedata.delete()
         }
+
+        sh '''
+        cat ${params.UPLOADED_FILE} > ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME}
+        '''
 
         }
     }
