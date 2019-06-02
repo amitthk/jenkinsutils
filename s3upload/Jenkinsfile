@@ -29,7 +29,7 @@ options {
 }
 
 parameters {
-    file(name:"${WORKSPACE}/UPLOADED_FILE", description:'FILE to be uploaded')
+    //file(name:"${WORKSPACE}/UPLOADED_FILE", description:'FILE to be uploaded')
     password(name:'AWS_KEY', defaultValue: '', description:'Enter AWS_KEY')
     choice(name: 'DEPLOY_ENV', choices: ['dev','sit','uat','prod'], description: 'Select the deploy environment')
     choice(name: 'ACTION_TYPE', choices: ['upload','download', 'delete'], description: 'Upload, download or delete')
@@ -65,7 +65,7 @@ stages{
 
         env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
         env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}/${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()
-        //env.UPLOADED_FILE_CONTENTS = library.inputGetFile('UPLOADED_FILE')
+        env.UPLOADED_FILE_CONTENTS = library.inputGetFile('UPLOADED_FILE')
         //new hudson.FilePath(new File("$workspace/UPLOADED_FILE")).copyFrom(params.UPLOADED_FILE)
         }
 
@@ -88,6 +88,7 @@ stages{
                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]){
                     
                     sh '''#!/bin/bash -xe
+                    cat ${UPLOADED_FILE_CONTENTS} | base64 -d > ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME}
                     aws s3 cp ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME} s3://${aws_s3_bucket_name}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
                     '''
                 }
