@@ -67,7 +67,7 @@ stages{
         env.ARTIFACT_TYPE = "$params.ARTIFACT_TYPE"
 
         env.GROUP_URL = sh (script: "echo ${GROUP_ID} | tr '.' '/'", returnStdout: true)
-        env.ARTIFACT_FULL_NAME = sh (script: "echo ${ARTIFACT_ID}/${ARTIFACT_VERSION}.${ARTIFACT_TYPE} | tr '.' '/'", returnStdout: true)
+        env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}/${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true)
         //env.UPLOADED_FILE_CONTENTS = library.inputGetFile('UPLOADED_FILE')
         }
 
@@ -101,6 +101,9 @@ stages{
 
 post {
     always {
+        script{
+            cleanWs()
+        }
         sh '''
         echo "perform some cleanup"
         rm -f $APP_BASE_DIR/cf-params.json | true
