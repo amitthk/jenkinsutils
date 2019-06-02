@@ -29,7 +29,7 @@ options {
 }
 
 parameters {
-    file(name:"$workspace/UPLOADED_FILE", description:'FILE to be uploaded')
+    file(name:"${WORKSPACE}/UPLOADED_FILE", description:'FILE to be uploaded')
     password(name:'AWS_KEY', defaultValue: '', description:'Enter AWS_KEY')
     choice(name: 'DEPLOY_ENV', choices: ['dev','sit','uat','prod'], description: 'Select the deploy environment')
     choice(name: 'ACTION_TYPE', choices: ['upload','download', 'delete'], description: 'Upload, download or delete')
