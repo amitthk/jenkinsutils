@@ -67,7 +67,7 @@ stages{
         }
 
         sh '''
-        cat ${params.UPLOADED_FILE} > ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME}
+        cat ${UPLOADED_FILE} > ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME}
         '''
 
         }
