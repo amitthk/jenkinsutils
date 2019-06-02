@@ -63,7 +63,7 @@ stages{
                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]){
                     
                     sh '''#!/bin/bash -xe
-                    tar -czvf ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME} ${}/ansible ${}/env_vars ${}/util.groovy
+                    tar -czvf ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME} ${APP_BASE_DIR}/ansible ${APP_BASE_DIR}/env_vars ${APP_BASE_DIR}/util.groovy
                     aws s3 cp ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME} s3://${aws_s3_bucket_name}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
                     '''
                 }
