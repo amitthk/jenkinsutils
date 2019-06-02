@@ -103,9 +103,9 @@ def inputGetFile(String savedfile = null) {
 }
 def getReleaseVersion(String cutRelease, String artifactVersion, String gitCommitShorHash){
     if(cutRelease.toString()=="true"){
-        return "${artifactVersion}-${gitCommitShorHash}"
+        return "${artifactVersion}-${gitCommitShorHash}".trim()
     }else{
-        return "${artifactVersion}"
+        return "${artifactVersion}".trim()
     }
 }
 return this;
