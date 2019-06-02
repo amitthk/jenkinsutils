@@ -69,6 +69,9 @@ stages{
         env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
         env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}/${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()
         //env.UPLOADED_FILE_CONTENTS = library.inputGetFile('UPLOADED_FILE')
+        writeFile(file: "${ARTIFACT_FULL_NAME}", encoding: 'UTF-8', text: params.UPLOADED_FILE.read().getBytes())
+        // Remove the file from the master to avoid stuff like secret leakage
+        //filedata.delete()
         }
 
         }
@@ -88,8 +91,8 @@ stages{
                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]){
                     
                     sh '''#!/bin/bash -xe
-                    find  ${WORKSPACE}
-                    aws s3 cp ${WORKSPACE}/${UPLOADED_FILE} s3://${aws_s3_bucket_name}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
+                    find  ${APP_BASE_DIR}
+                    aws s3 cp ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME} s3://${aws_s3_bucket_name}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
                     '''
                 }
             }
