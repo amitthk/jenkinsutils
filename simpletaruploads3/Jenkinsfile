@@ -16,6 +16,7 @@ parameters {
     string(name: 'ARTIFACT_ID', defaultValue: 'demo', description: 'ARTIFACT_ID')
     string(name: 'ARTIFACT_VERSION', defaultValue: '1.0.0', description: 'ARTIFACT_VERSION')
     string(name: 'ARTIFACT_TYPE', defaultValue: 'tgz', description: 'tgz')
+    booleanParam(name: 'CUT_RELEASE', defaultValue: 'true', description: 'Cut a release?')
 }
 
 stages{
@@ -27,7 +28,8 @@ stages{
         env.DEPLOY_ENV = "$params.DEPLOY_ENV"
         env.BASE_DIR = pwd()
         env.APP_BASE_DIR = "$BASE_DIR/simpletaruploads3"
-        env.GIT_HASH = sh (script: "git rev-parse --short HEAD", returnStdout: true)
+        env.GIT_HASH = sh (script: "git rev-parse HEAD", returnStdout: true)
+        env.GIT_COMMIT_SHORT_HASH = sh (script: "git rev-parse --short HEAD", returnStdout: true)
         env.TIMESTAMP = sh (script: "date +'%Y%m%d%H%M%S%N' | sed 's/[0-9][0-9][0-9][0-9][0-9][0-9]\$//g'", returnStdout: true)
         load "${APP_BASE_DIR}/env_vars/all.groovy"
         load "${APP_BASE_DIR}/env_vars/${DEPLOY_ENV}.groovy"
@@ -39,6 +41,10 @@ stages{
         env.ARTIFACT_ID = "$params.ARTIFACT_ID"
         env.ARTIFACT_VERSION = "$params.ARTIFACT_VERSION"
         env.ARTIFACT_TYPE = "$params.ARTIFACT_TYPE"
+
+        util = load "${APP_BASE_DIR}/util.groovy"
+
+        env.ARTIFACT_VERSION = util.getReleaseVersion("${CUT_RELEASE}", "${ARTIFACT_VERSION}", "${GIT_COMMIT_SHORT_HASH}")
 
         env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
         env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()

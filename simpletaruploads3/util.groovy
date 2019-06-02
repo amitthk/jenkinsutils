@@ -101,4 +101,11 @@ def inputGetFile(String savedfile = null) {
  filedata.delete()
  return filename
 }
+def getReleaseVersion(String cutRelease, String artifactVersion, String gitCommitShorHash){
+    if(cutRelease.toString()=="true"){
+        return "${artifactVersion}-${gitCommitShorHash}"
+    }else{
+        return "${artifactVersion}"
+    }
+}
 return this;
