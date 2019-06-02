@@ -63,11 +63,12 @@ stages{
 
         env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
         env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()
+        infile = "$params.UPLOADED_FILE"
         //env.UPLOADED_FILE_CONTENTS = inputGetFile('UPLOADED_FILE')
         //new hudson.FilePath(new File("$workspace/UPLOADED_FILE")).copyFrom(params.UPLOADED_FILE)
-         writeFile(file: "$ARTIFACT_FULL_NAME", encoding: 'Base64', text: params.UPLOADED_FILE.read().getBytes().encodeBase64().toString())
+         writeFile(file: "$ARTIFACT_FULL_NAME", encoding: 'Base64', text: infile.read().getBytes().encodeBase64().toString())
         // Remove the file from the master to avoid stuff like secret leakage
-        params.UPLOADED_FILE.delete()
+        infile.delete()
         sh '''
         find  ${WORKSPACE}
         '''
