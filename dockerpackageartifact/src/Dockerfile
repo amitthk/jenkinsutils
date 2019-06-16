@@ -16,7 +16,6 @@ ARG ADMIN_UUID=1000
 ARG PIP_INDEX=https://pypi.org/simple
 
 ENV GROUP_ID=${GROUP_ID} \
-    GROUP_URL=`echo "${GROUP_ID}" | tr "." "/"` \
     ARTIFACT_ID=${ARTIFACT_ID} \
     ARTIFACT_VERSION=${ARTIFACT_VERSION} \
     REPO_BASE_URL=${REPO_BASE_URL} \
@@ -39,6 +38,7 @@ RUN mkdir -p ${APP_HOME_DIR} \
 COPY src/files ${APP_HOME_DIR}
 
 RUN cd ${APP_HOME_DIR}/ \
+    && export GROUP_URL=`echo "${GROUP_ID}" | tr "." "/"` \
     && wget ${REPO_BASE_URL}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE} \
     && if [ "${ARTIFACT_TYPE}"="zip" ];  then unzip "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -d "${APP_HOME_DIR}"; fi \
     && if [ "${ARTIFACT_TYPE}"="tgz" ];  then tar -xzvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
