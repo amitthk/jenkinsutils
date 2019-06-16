@@ -1,7 +1,7 @@
 
 import java.text.SimpleDateFormat
 
-def getTimeStamp(){
+def getTimeStampGroovy(){
 	def dateFormat = new SimpleDateFormat("yyyyMMddHHmm")
 	def date = new Date()
 	return dateFormat.format(date);

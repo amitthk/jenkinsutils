@@ -1,5 +1,4 @@
 env.APP_NAME='kubejencdp'
-env.IMAGE_NAME='kubejencdp-mvn'
 env.PROJECT_NAME='amitthk'
 env.DOCKER_REGISTRY_URL='registry.hub.docker.com'
 env.RELEASE_TAG='1.0.0'
