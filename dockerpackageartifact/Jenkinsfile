@@ -84,11 +84,12 @@ stages{
     stage('Build'){
         steps{
             withEnv(["APP_NAME=${APP_NAME}", "PROJECT_NAME=${PROJECT_NAME}"]){
-                sh '''
+                sh '''#!/bin/bash -xe
+                cd ${APP_BASE_DIR}/src
                 docker build -t ${DOCKER_IMAGE_TAG} \
                 --build-arg ARTIFACT_ID=${ARTIFACT_ID} \
                 --build-arg ARTIFACT_VERSION=${ARTIFACT_VERSION} \
-                -f src/Dockerfile src/.
+                -f ./Dockerfile .
                 '''
             }   
         }
