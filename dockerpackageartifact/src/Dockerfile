@@ -52,13 +52,15 @@ RUN cd ${APP_HOME_DIR}/ \
     && export GROUP_URL=`echo "${GROUP_ID}" | tr "." "/"` \
     && wget ${REPO_BASE_URL}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE} \
     && unzip "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -d "${APP_HOME_DIR}" \
-    # && if [ "${ARTIFACT_TYPE}"="tgz" ];  then tar -xzvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
-    # && if [ "${ARTIFACT_TYPE}"="tar" ];  then tar -xvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
     && rm "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" \
     && chmod -R 0755 ${APP_HOME_DIR} \
     && mkdir -p ${APP_HOME_DIR}/vault-data \
     && chown -R ${ADMIN_USER}:root ${APP_HOME_DIR} \
     && chmod g=u /etc/passwd
+
+    # && if [ "${ARTIFACT_TYPE}"="tgz" ];  then tar -xzvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
+    # && if [ "${ARTIFACT_TYPE}"="tar" ];  then tar -xvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
+
 
 WORKDIR ${APP_HOME_DIR}
 
