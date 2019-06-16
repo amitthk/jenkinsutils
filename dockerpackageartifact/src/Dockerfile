@@ -10,6 +10,7 @@ FROM centos:centos7
 ARG GROUP_ID=org.mywire.amitthk
 ARG ARTIFACT_ID=VAULT
 ARG ARTIFACT_VERSION=1.1.3
+ARG ARTIFACT_TYPE=zip
 ARG REPO_BASE_URL=https://jvcdp-repo.s3-ap-southeast-1.amazonaws.com
 ARG ADMIN_USER=vaultadm
 ARG ADMIN_UUID=1000
@@ -19,6 +20,7 @@ ARG APP_HOME_DIR=/root
 ENV GROUP_ID=${GROUP_ID} \
     ARTIFACT_ID=${ARTIFACT_ID} \
     ARTIFACT_VERSION=${ARTIFACT_VERSION} \
+    ARTIFACT_TYPE=${ARTIFACT_TYPE} \
     REPO_BASE_URL=${REPO_BASE_URL} \
     ADMIN_UUID=${ADMIN_UUID} \
     PIP_INDEX=${PIP_INDEX} \
@@ -36,7 +38,8 @@ USER root
 
 RUN mkdir -p ${APP_HOME_DIR} \
     && useradd --home-dir ${APP_HOME_DIR} -u ${ADMIN_UUID} -g 0 ${ADMIN_USER} \
-    && yum install -y glibc glibc-common gcc gcc++ wget unzip python-setuptools python-ldap java-1.8.0-openjdk java-1.8.0-openjdk-devel
+    && yum install -y wget unzip
+    #&& yum install -y glibc glibc-common gcc gcc++  python-setuptools python-ldap java-1.8.0-openjdk java-1.8.0-openjdk-devel
 
 COPY files ${APP_HOME_DIR}
 
