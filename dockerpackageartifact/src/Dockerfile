@@ -41,8 +41,8 @@ COPY files ${APP_HOME_DIR}
 RUN mkdir -p ${APP_HOME_DIR} \
     && useradd --home-dir ${APP_HOME_DIR} -u ${ADMIN_UUID} -g 0 ${ADMIN_USER} \
     && mkdir -p ~/.pip && cp ${APP_HOME_DIR}/pip/pip.conf ~/.pip/pip.conf \ 
-    && cp ${APP_HOME_DIR}/*.repo /etc/yum.repos.d/ \
-    && mkdir -p /etc/pki/rpm-gpg/ && cp ${APP_HOME_DIR}RPM-GPG-KEY-EPEL-7 /etc/pki/rpm-gpg/
+    && cp ${APP_HOME_DIR}/yum/*.repo /etc/yum.repos.d/ \
+    && mkdir -p /etc/pki/rpm-gpg/ && cp ${APP_HOME_DIR}/yum/RPM-GPG-KEY-EPEL-7 /etc/pki/rpm-gpg/
 
 RUN yum install -y wget unzip tar
     #&& yum install -y glibc glibc-common gcc gcc++  python-setuptools python-ldap java-1.8.0-openjdk java-1.8.0-openjdk-devel
