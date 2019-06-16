@@ -21,7 +21,6 @@ parameters {
     password(name:'AWS_KEY', defaultValue: '', description:'Enter AWS_KEY')
     choice(name: 'DEPLOY_ENV', choices: ['dev','sit','uat','prod'], description: 'Select the deploy environment')
     choice(name: 'ACTION_TYPE', choices: ['build','release'], description: 'Action to take')
-    string(name: 'DOWNLOAD_ARTIFACT_URL', defaultValue: '', description: 'URL of the Artifact to be downloaded')
     string(name: 'AWS_DEFAULT_REGION', defaultValue: 'ap-southeast-1', description: 'AWS default region')
     string(name: 'GROUP_ID', defaultValue: 'org.mywire.amitthk', description: 'Groupid of the artifact')
     string(name: 'ARTIFACT_ID', defaultValue: 'vault', description: 'ARTIFACT_ID')
