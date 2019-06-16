@@ -1,0 +1,144 @@
+// The MIT License
+// SPDX short identifier: MIT
+// Further resources on the MIT License
+// Copyright 2018 Amit Thakur - amitthk - <e.amitthakur@gmail.com>
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+pipeline{
+
+environment {
+    GIT_COMMIT_SHORT_HASH = sh (script: "git rev-parse --short HEAD", returnStdout: true)
+}
+
+agent any
+
+options {
+      timeout(time: 1, unit: 'HOURS') 
+}
+
+parameters {
+    password(name:'AWS_KEY', defaultValue: '', description:'Enter AWS_KEY')
+    choice(name: 'DEPLOY_ENV', choices: ['dev','sit','uat','prod'], description: 'Select the deploy environment')
+    choice(name: 'ACTION_TYPE', choices: ['build','release'], description: 'Action to take')
+    string(name: 'DOWNLOAD_ARTIFACT_URL', defaultValue: '', description: 'URL of the Artifact to be downloaded')
+    string(name: 'AWS_DEFAULT_REGION', defaultValue: 'ap-southeast-1', description: 'AWS default region')
+    string(name: 'GROUP_ID', defaultValue: 'org.mywire.amitthk', description: 'Groupid of the artifact')
+    string(name: 'ARTIFACT_ID', defaultValue: 'demo', description: 'ARTIFACT_ID')
+    string(name: 'ARTIFACT_VERSION', defaultValue: '1.0.0', description: 'ARTIFACT_VERSION')
+    string(name: 'ARTIFACT_TYPE', defaultValue: 'tgz', description: 'tgz')
+    //booleanParam(name: 'CUT_RELEASE', defaultValue: true, description: 'Cut a release?')
+}
+
+stages{
+    stage('Init'){
+        steps{
+            //checkout scm;
+        script{
+        env.BASE_DIR = pwd()
+        env.CURRENT_BRANCH = env.BRANCH_NAME
+        env.APP_BASE_DIR = "$BASE_DIR/dockerpackageartifact"
+        env.GIT_HASH = sh (script: "git rev-parse HEAD", returnStdout: true)
+        env.GIT_COMMIT_SHORT_HASH = sh (script: "git rev-parse --short HEAD", returnStdout: true)
+        env.TIMESTAMP = sh (script: "date +'%Y%m%d%H%M%S%N' | sed 's/[0-9][0-9][0-9][0-9][0-9][0-9]\$//g'", returnStdout: true)
+        load "${APP_BASE_DIR}/env_vars/all.groovy"
+        //load "${APP_BASE_DIR}/env_vars/${DEPLOY_ENV}.groovy"
+
+        env.ACTION_TYPE = "$params.ACTION_TYPE"
+        env.AWS_DEFAULT_REGION = "$params.AWS_DEFAULT_REGION"
+
+        env.GROUP_ID = "$params.GROUP_ID"
+        env.ARTIFACT_ID = "$params.ARTIFACT_ID"
+        env.ARTIFACT_VERSION = "$params.ARTIFACT_VERSION"
+        env.ARTIFACT_TYPE = "$params.ARTIFACT_TYPE"
+
+        util = load "${APP_BASE_DIR}/util.groovy"
+
+        env.ARTIFACT_VERSION = util.getReleaseVersion("false", "${ARTIFACT_VERSION}", "${GIT_COMMIT_SHORT_HASH}")
+
+        env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
+        env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()
+
+
+        env.IMAGE_TAG = util.getImageTag(env.CURRENT_BRANCH)
+        env.TIMESTAMP = util.getTimeStamp();
+
+        env.DOCKER_IMAGE_TAG= "${DOCKER_REGISTRY_URL}/${DOCKER_PROJECT_NAMESPACE}/${APP_NAME}:${RELEASE_TAG}"
+
+        }
+
+        }
+    }
+
+    stage('Cleanup'){
+        steps{
+            sh '''
+            docker rmi $(docker images -f 'dangling=true' -q) || true
+            docker rmi $(docker images | sed 1,2d | awk '{print $3}') || true
+            '''
+        }
+
+    }
+    stage('Build'){
+        steps{
+            withEnv(["APP_NAME=${APP_NAME}", "PROJECT_NAME=${PROJECT_NAME}"]){
+                sh '''
+                docker build -t ${DOCKER_REGISTRY_URL}/${DOCKER_PROJECT_NAMESPACE}/${IMAGE_NAME}:${RELEASE_TAG} --build-arg APP_NAME=${IMAGE_NAME}  -f src/Dockerfile src/.
+                '''
+            }   
+        }
+    }
+    stage('Publish'){
+        steps{
+            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: "${JENKINS_DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWD']])
+            {
+            sh '''
+            echo $DOCKER_PASSWD | docker login --username ${DOCKER_USERNAME} --password-stdin ${DOCKER_REGISTRY_URL} 
+            docker push ${DOCKER_REGISTRY_URL}/${DOCKER_PROJECT_NAMESPACE}/${IMAGE_NAME}:${RELEASE_TAG}
+            docker logout
+            '''
+            }
+        }
+    }
+    // stage('Deploy'){
+    //     steps{
+    //     withCredentials([file(credentialsId: "${JENKINS_GCLOUD_CRED_ID}", variable: 'JENKINSGCLOUDCREDENTIAL')])
+    //     {
+    //     sh """
+    //         gcloud auth activate-service-account --key-file=${JENKINSGCLOUDCREDENTIAL}
+    //         gcloud config set compute/zone asia-southeast1-a
+    //         gcloud config set compute/region asia-southeast1
+    //         gcloud config set project ${GCLOUD_PROJECT_ID}
+    //         gcloud container clusters get-credentials ${GCLOUD_K8S_CLUSTER_NAME}
+            
+    //         chmod +x $APP_BASE_DIR/k8s/process_files.sh
+
+    //         cd $APP_BASE_DIR/k8s/
+    //         ./process_files.sh "$GCLOUD_PROJECT_ID" "${IMAGE_NAME}" "${DOCKER_PROJECT_NAMESPACE}/${IMAGE_NAME}:${RELEASE_TAG}" "./${IMAGE_NAME}/" ${TIMESTAMP}
+
+    //         cd $APP_BASE_DIR/k8s/${IMAGE_NAME}/.
+    //         kubectl apply --force=true --all=true --record=true -f $APP_BASE_DIR/k8s/$IMAGE_NAME/
+    //         kubectl rollout status --watch=true --v=8 -f $APP_BASE_DIR/k8s/$IMAGE_NAME/$IMAGE_NAME-deployment.yml
+
+    //         gcloud auth revoke --all
+    //         """
+    //     }
+    //     }
+    // }
+}
+
+post {
+    always {
+        echo "Build# ${env.BUILD_NUMBER} - Job: ${env.JOB_NUMBER} status is: ${currentBuild.currentResult}"
+        // emailext(attachLog: true,
+        // mimeType: 'text/html',
+        // body: '''
+        // <h2>Build# ${env.BUILD_NUMBER} - Job: ${env.JOB_NUMBER} status is: ${currentBuild.currentResult}</h2>
+        // <p>Check console output at &QUOT;<a href='${env.BUILD_URL'>${env.JOB_NAME} - [${env.BUILD_NUMBER}]</a>&QUOT;</p>
+        // ''',
+        // recipientProviders: [[$class: "FirstFailingBuildSusspectRecipientProvider"]],
+        // subject: "Build# ${env.BUILD_NUMBER} - Job: ${env.JOB_NUMBER} status is: ${currentBuild.currentResult}",
+        // to: "e.amitthakur@gmail.com")
+    }
+}
+}
