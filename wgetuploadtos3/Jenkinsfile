@@ -1,0 +1,95 @@
+
+pipeline{
+
+agent any
+
+options {
+      timeout(time: 1, unit: 'HOURS') 
+}
+
+parameters {
+    password(name:'AWS_KEY', defaultValue: '', description:'Enter AWS_KEY')
+    choice(name: 'DEPLOY_ENV', choices: ['dev','sit','uat','prod'], description: 'Select the deploy environment')
+    choice(name: 'ACTION_TYPE', choices: ['upload','download', 'delete'], description: 'Upload, download or delete')
+    string(name: 'DOWNLOAD_ARTIFACT_URL', defaultValue: '', description: 'URL of the Artifact to be downloaded')
+    string(name: 'AWS_DEFAULT_REGION', defaultValue: 'ap-southeast-1', description: 'AWS default region')
+    string(name: 'GROUP_ID', defaultValue: 'org.mywire.amitthk', description: 'Groupid of the artifact')
+    string(name: 'ARTIFACT_ID', defaultValue: 'demo', description: 'ARTIFACT_ID')
+    string(name: 'ARTIFACT_VERSION', defaultValue: '1.0.0', description: 'ARTIFACT_VERSION')
+    string(name: 'ARTIFACT_TYPE', defaultValue: 'tgz', description: 'tgz')
+    booleanParam(name: 'CUT_RELEASE', defaultValue: true, description: 'Cut a release?')
+}
+
+stages{
+    stage('Init'){
+        steps{
+            checkout scm 
+        script{
+
+        env.DEPLOY_ENV = "$params.DEPLOY_ENV"
+        env.BASE_DIR = pwd()
+        env.APP_BASE_DIR = "$BASE_DIR/simpletaruploads3"
+        env.GIT_HASH = sh (script: "git rev-parse HEAD", returnStdout: true)
+        env.GIT_COMMIT_SHORT_HASH = sh (script: "git rev-parse --short HEAD", returnStdout: true)
+        env.TIMESTAMP = sh (script: "date +'%Y%m%d%H%M%S%N' | sed 's/[0-9][0-9][0-9][0-9][0-9][0-9]\$//g'", returnStdout: true)
+        load "${APP_BASE_DIR}/env_vars/all.groovy"
+        load "${APP_BASE_DIR}/env_vars/${DEPLOY_ENV}.groovy"
+
+        env.ACTION_TYPE = "$params.ACTION_TYPE"
+        env.AWS_DEFAULT_REGION = "$params.AWS_DEFAULT_REGION"
+
+        env.GROUP_ID = "$params.GROUP_ID"
+        env.ARTIFACT_ID = "$params.ARTIFACT_ID"
+        env.ARTIFACT_VERSION = "$params.ARTIFACT_VERSION"
+        env.ARTIFACT_TYPE = "$params.ARTIFACT_TYPE"
+
+        util = load "${APP_BASE_DIR}/util.groovy"
+
+        env.ARTIFACT_VERSION = util.getReleaseVersion("${params.CUT_RELEASE}", "${ARTIFACT_VERSION}", "${GIT_COMMIT_SHORT_HASH}")
+
+        env.GROUP_URL = sh (script: 'echo "${GROUP_ID}" | tr "." "/"', returnStdout: true).trim()
+        env.ARTIFACT_FULL_NAME = sh (script: 'echo "${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}"', returnStdout: true).trim()
+        }
+
+
+
+        }
+    }
+
+    stage('Upload'){
+        when {
+        expression {
+            return env.ACTION_TYPE == 'upload';
+            }
+        }
+        steps{
+            script{
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', 
+                accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
+                credentialsId: "${repo_bucket_credentials_id}", 
+                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]){
+                    
+                    sh '''#!/bin/bash -xe
+                    wget -O ${ARTIFACT_FULL_NAME} ${DOWNLOAD_ARTIFACT_URL} 
+                    aws s3 cp ${APP_BASE_DIR}/${ARTIFACT_FULL_NAME} s3://${aws_s3_bucket_name}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_FULL_NAME}
+                    '''
+                }
+            }
+        }
+    }
+
+
+}
+
+post {
+    always {
+        script{
+            cleanWs()
+        }
+        sh '''
+        echo "perform some cleanup"
+        rm -f $APP_BASE_DIR/cf-params.json | true
+        '''
+    }
+}
+}
