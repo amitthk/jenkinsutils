@@ -35,7 +35,8 @@ EXPOSE 8200
 USER root
 
 RUN mkdir -p ${APP_HOME_DIR} \
-    && useradd --home-dir ${APP_HOME_DIR} -u ${ADMIN_UUID} -g 0 ${ADMIN_USER}
+    && useradd --home-dir ${APP_HOME_DIR} -u ${ADMIN_UUID} -g 0 ${ADMIN_USER} \
+    && yum install -y glibc glibc-common gcc gcc++ wget unzip python-setuptools python-ldap java-1.8.0-openjdk java-1.8.0-openjdk-devel
 
 COPY files ${APP_HOME_DIR}
 
