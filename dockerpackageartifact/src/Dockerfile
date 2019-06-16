@@ -51,9 +51,9 @@ RUN yum install -y wget unzip tar
 RUN cd ${APP_HOME_DIR}/ \
     && export GROUP_URL=`echo "${GROUP_ID}" | tr "." "/"` \
     && wget ${REPO_BASE_URL}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE} \
-    && if [ "${ARTIFACT_TYPE}"="zip" ];  then unzip "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -d "${APP_HOME_DIR}"; fi \
-    && if [ "${ARTIFACT_TYPE}"="tgz" ];  then tar -xzvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
-    && if [ "${ARTIFACT_TYPE}"="tar" ];  then tar -xvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
+    && unzip "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -d "${APP_HOME_DIR}" \
+    # && if [ "${ARTIFACT_TYPE}"="tgz" ];  then tar -xzvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
+    # && if [ "${ARTIFACT_TYPE}"="tar" ];  then tar -xvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
     && rm "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" \
     && chmod -R 0755 ${APP_HOME_DIR} \
     && mkdir -p ${APP_HOME_DIR}/vault-data \
