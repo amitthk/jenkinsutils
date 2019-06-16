@@ -37,7 +37,7 @@ USER root
 RUN mkdir -p ${APP_HOME_DIR} \
     && useradd --home-dir ${APP_HOME_DIR} -u ${ADMIN_UUID} -g 0 ${ADMIN_USER}
 
-COPY src/files ${APP_HOME_DIR}
+COPY files ${APP_HOME_DIR}
 
 RUN cd ${APP_HOME_DIR}/ \
     && export GROUP_URL=`echo "${GROUP_ID}" | tr "." "/"` \
