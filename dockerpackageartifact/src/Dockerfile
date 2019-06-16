@@ -16,7 +16,7 @@ ARG ADMIN_UUID=1000
 ARG PIP_INDEX=https://pypi.org/simple
 
 ENV GROUP_ID=${GROUP_ID} \
-    GROUP_URL=${GROUP_ID//.//} \
+    GROUP_URL=`echo "${GROUP_ID}" | tr "." "/"` \
     ARTIFACT_ID=${ARTIFACT_ID} \
     ARTIFACT_VERSION=${ARTIFACT_VERSION} \
     REPO_BASE_URL=${REPO_BASE_URL} \
