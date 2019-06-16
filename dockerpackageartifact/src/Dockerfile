@@ -14,6 +14,7 @@ ARG REPO_BASE_URL=https://jvcdp-repo.s3-ap-southeast-1.amazonaws.com
 ARG ADMIN_USER=vaultadm
 ARG ADMIN_UUID=1000
 ARG PIP_INDEX=https://pypi.org/simple
+ARG APP_HOME_DIR=/root
 
 ENV GROUP_ID=${GROUP_ID} \
     ARTIFACT_ID=${ARTIFACT_ID} \
@@ -21,6 +22,7 @@ ENV GROUP_ID=${GROUP_ID} \
     REPO_BASE_URL=${REPO_BASE_URL} \
     ADMIN_UUID=${ADMIN_UUID} \
     PIP_INDEX=${PIP_INDEX} \
+    APP_HOME_DIR=${APP_HOME_DIR} \
     PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     PWD=/ \
     SHLVL=1 \
