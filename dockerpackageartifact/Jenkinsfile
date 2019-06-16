@@ -89,6 +89,7 @@ stages{
                 docker build -t ${DOCKER_IMAGE_TAG} \
                 --build-arg ARTIFACT_ID=${ARTIFACT_ID} \
                 --build-arg ARTIFACT_VERSION=${ARTIFACT_VERSION} \
+                --build-arg ARTIFACT_TYPE=${ARTIFACT_TYPE} \
                 -f ./Dockerfile .
                 '''
             }   

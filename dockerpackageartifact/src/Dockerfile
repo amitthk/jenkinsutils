@@ -44,7 +44,7 @@ RUN mkdir -p ${APP_HOME_DIR} \
     && cp ${APP_HOME_DIR}/*.repo /etc/yum.repos.d/ \
     && mkdir -p /etc/pki/rpm-gpg/ && cp ${APP_HOME_DIR}RPM-GPG-KEY-EPEL-7 /etc/pki/rpm-gpg/
 
-RUN yum install -y wget unzip
+RUN yum install -y wget unzip tar
     #&& yum install -y glibc glibc-common gcc gcc++  python-setuptools python-ldap java-1.8.0-openjdk java-1.8.0-openjdk-devel
 
 
@@ -53,6 +53,7 @@ RUN cd ${APP_HOME_DIR}/ \
     && wget ${REPO_BASE_URL}/${GROUP_URL}/${ARTIFACT_ID}/${ARTIFACT_VERSION}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE} \
     && if [ "${ARTIFACT_TYPE}"="zip" ];  then unzip "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -d "${APP_HOME_DIR}"; fi \
     && if [ "${ARTIFACT_TYPE}"="tgz" ];  then tar -xzvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
+    && if [ "${ARTIFACT_TYPE}"="tar" ];  then tar -xvf "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" -C "${APP_HOME_DIR}"; fi \
     && rm "${APP_HOME_DIR}/${ARTIFACT_ID}-${ARTIFACT_VERSION}.${ARTIFACT_TYPE}" \
     && chmod -R 0755 ${APP_HOME_DIR} \
     && mkdir -p ${APP_HOME_DIR}/vault-data \
