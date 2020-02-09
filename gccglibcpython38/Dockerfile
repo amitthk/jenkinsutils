@@ -21,6 +21,7 @@ RUN cd /tmp/ \
     && cd glibc-2.18 \
     && mkdir build \
     && cd build \
+    && export LD_LIBRARY_PATH=/opt/glibc-2.18/lib \
     && ../configure --prefix=/opt/glibc-2.18 \
     && make -j4 \
     && make install
