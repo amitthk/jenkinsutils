@@ -9,11 +9,10 @@ RUN mkdir -p /tmp && chmod -R 0775 /tmp && cd /tmp \
     && source venv/bin/activate \
     && pip install -r requirements.txt
 
-RUN cat > /entrypoint.sh << EOF \
-#!/bin/bash
-exec "$@" \
-EOF \
-&& chmod 0755 /entrypoint.sh
+RUN echo '#!/bin/bash' > /entrypoint.sh \
+    && echo 'exec "$@"' >> /entrypoint.sh
+
+RUN chmod 0755 /entrypoint.sh
 
 ENTRYPOINT [ "entrypoint.sh" ]
 CMD [ "/bin/bash" ]

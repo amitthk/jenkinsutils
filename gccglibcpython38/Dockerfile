@@ -1,4 +1,4 @@
-from centos:7
+FROM centos:7
 
 RUN yum -y downgrade glibc glibc-common glibc-devel glibc-headers cyrus-sasl-lib make \
     && yum -y install gcc gcc-c++ intltool gperf openssl-devel bzip2-devel \
