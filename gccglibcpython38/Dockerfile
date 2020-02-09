@@ -11,9 +11,9 @@ RUN mkdir -p /tmp && chmod -R 0774 /tmp/ && cd /tmp/ \
     && tar xzf Python-3.8.1.tgz \
     && cd Python-3.8.1 \
     && ./configure --enable-optimizations \
-    && sudo make altinstall \
-    && sudo ln -sfn /usr/local/bin/python3.8 /usr/bin/python3.8 \
-    && sudo ln -sfn /usr/bin/python3.8 /usr/bin/python
+    && make altinstall \
+    && ln -sfn /usr/local/bin/python3.8 /usr/bin/python3.8 \
+    && ln -sfn /usr/bin/python3.8 /usr/bin/python
 
 RUN cd /tmp/ \
     && curl -k -o glibc-2.18.tar.gz http://ftp.gnu.org/gnu/glibc/glibc-2.18.tar.gz \
@@ -23,9 +23,9 @@ RUN cd /tmp/ \
     && cd build \
     && ../configure --prefix=/opt/glibc-2.18 \
     && make -j4 \
-    && sudo make install
+    && make install
 
-RUN export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/glibc-2.18/lib
+RUN export LD_LIBRARY_PATH=/opt/glibc-2.18/lib
 
 COPY files/entrypoint.sh /entrypoint.sh
 
