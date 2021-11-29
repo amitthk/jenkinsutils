@@ -14,7 +14,7 @@ ldap3==2.5.1
 MarkupSafe==1.0
 pyasn1==0.4.4
 pyasn1-modules==0.2.2
-python-ldap==3.1.0
+python-ldap==3.4.0
 pytz==2018.5
 six==1.11.0
 Werkzeug==0.14.1
